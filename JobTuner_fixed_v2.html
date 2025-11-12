@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JobTuner — ATS Resume Analyzer + Portfolio Generator</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.js"></script>
+
+  <!-- pdf.js (stable 2.x) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    const pdfjsLib = window['pdfjsLib'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+    window._pdfjsLib = pdfjsLib;
+  </script>
+
+  <!-- mammoth.js (DOCX) -->
+  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+
+  <!-- jsPDF + AutoTable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    :root{ --emerald:#059669; --accent:#6366f1; --bg:#f7f8fa; }
+    html,body{height:100%}
+    body{
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color:#0f172a;
+      background:
+        radial-gradient(900px 500px at 10% -10%, #eefbf4 0%, transparent 60%),
+        radial-gradient(900px 500px at 100% 0%, #eef5ff 0%, transparent 60%),
+        linear-gradient(to bottom, #f8fafc, #ffffff 40%);
+    }
+    h1,h2,h3{font-family:Poppins, Inter, sans-serif}
+    .card{border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(15,23,42,.08)}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.05rem;border-radius:12px;border:1px solid #e2e8f0;font-weight:600}
+    .btn-primary{background:var(--emerald);color:#fff;border-color:var(--emerald)}
+    .btn-ghost{background:#fff;color:#0f172a}
+    .btn-outline{background:#fff;color:var(--emerald);border-color:var(--emerald)}
+    .progress{height:12px;border-radius:999px;background:#e5e7eb;position:relative;overflow:hidden}
+    .progress>span{position:absolute;inset:0 auto 0 0;width:0%;background:linear-gradient(90deg,#10b981,#22c55e);transition:width .6s ease}
+    .pill{display:inline-block;font-size:.75rem;font-weight:700;padding:.15rem .55rem;border-radius:999px;border:1px solid #d1fae5;color:#065f46;background:#ecfdf5}
+    .tag{display:inline-flex;align-items:center;padding:.25rem .55rem;border-radius:999px;font-size:.75rem;font-weight:600;background:#f1f5f9;color:#334155}
+    .tag-danger{background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;cursor:pointer}
+    .tag-good{background:#ecfdf5;color:#065f46;border:1px solid #bbf7d0}
+    .stickyglass{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:rgba(255,255,255,.7);border-bottom:1px solid rgba(226,232,240,.7)}
+
+    /* Hero */
+    .hero{background:linear-gradient(120deg, rgba(5,150,105,.08), rgba(99,102,241,.08)); position:relative; overflow:hidden}
+    .floaty{position:absolute;filter:blur(6px);opacity:.35;animation:float 12s ease-in-out infinite}
+    .floaty.one{width:240px;height:240px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #34d399, transparent 60%);top:-60px;left:-40px}
+    .floaty.two{width:300px;height:300px;border-radius:50%;background:radial-gradient(circle at 70% 70%, #60a5fa, transparent 60%);bottom:-80px;right:-60px;animation-delay:2s}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(14px)}}
+
+    /* Modal */
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;padding:1rem}
+    .modal.open{display:flex}
+    .modal .panel{max-height:85vh;overflow:auto}
+  </style>
+</head>
+<body>
+  <!-- Sticky Header / CTA -->
+  <div class="stickyglass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="rounded-xl bg-emerald-600 text-white p-2 shadow">
+          <i data-lucide="tune" class="w-5 h-5"></i>
+        </div>
+        <span class="text-lg md:text-xl font-bold tracking-tight">JobTuner</span>
+      </div>
+      <div class="hidden md:flex items-center gap-2">
+        <button id="ctaUpload" class="btn btn-outline"><i data-lucide="file-up" class="w-4 h-4"></i>Upload Resume</button>
+        <button id="ctaJD" class="btn btn-ghost"><i data-lucide="file-text" class="w-4 h-4"></i>Paste JD</button>
+        <button id="ctaAnalyze" class="btn btn-primary"><i data-lucide="sparkles" class="w-4 h-4"></i>Analyze Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="floaty one"></div><div class="floaty two"></div>
+    <div class="max-w-7xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight tracking-tight">
+          Boost Your ATS Score. <span class="text-emerald-600">Build Your Career Portfolio</span> in Minutes.
+        </h1>
+        <p class="text-slate-600 mt-4 text-lg max-w-2xl">Upload your resume, paste a job description, and get a tailored score, missing keywords, actionable fixes, and an auto-generated portfolio page you can export.</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button id="heroUpload" class="btn btn-primary"><i data-lucide="file-up" class="w-4 h-4"></i>Upload Resume</button>
+          <button id="heroJD" class="btn btn-outline"><i data-lucide="file-text" class="w-4 h-4"></i>Paste Job Description</button>
+          <button id="heroAnalyze" class="btn btn-ghost"><i data-lucide="sparkles" class="w-4 h-4"></i>Analyze Now</button>
+        </div>
+        <div class="mt-6 flex items-center gap-3 text-sm text-slate-600">
+          <span class="inline-flex items-center gap-1"><i data-lucide="shield-check" class="w-4 h-4"></i> Local only</span>
+          <span class="inline-flex items-center gap-1"><i data-lucide="file-badge" class="w-4 h-4"></i> Export PDF/HTML/README</span>
+          <span class="inline-flex items-center gap-1"><i data-lucide="sparkles" class="w-4 h-4"></i> Keyword Smart Tags</span>
+        </div>
+      </div>
+      <div></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="max-w-7xl mx-auto px-4 py-12">
+    <h2 class="text-2xl md:text-3xl font-bold">How it Works</h2>
+    <div class="grid md:grid-cols-3 gap-6 mt-6">
+      <div class="card p-5">
+        <div class="rounded-xl bg-emerald-100 w-10 h-10 flex items-center justify-center mb-3"><i data-lucide="file-up" class="w-5 h-5 text-emerald-700"></i></div>
+        <div class="font-semibold">1) Upload</div>
+        <p class="text-sm text-slate-600 mt-1">Drop a PDF/DOCX resume and optionally paste the JD.</p>
+      </div>
+      <div class="card p-5">
+        <div class="rounded-xl bg-indigo-100 w-10 h-10 flex items-center justify-center mb-3"><i data-lucide="gauge" class="w-5 h-5 text-indigo-700"></i></div>
+        <div class="font-semibold">2) Analyze</div>
+        <p class="text-sm text-slate-600 mt-1">Get ATS score, strengths, suggestions, and keyword gaps.</p>
+      </div>
+      <div class="card p-5">
+        <div class="rounded-xl bg-sky-100 w-10 h-10 flex items-center justify-center mb-3"><i data-lucide="briefcase" class="w-5 h-5 text-sky-700"></i></div>
+        <div class="font-semibold">3) Improve & Export</div>
+        <p class="text-sm text-slate-600 mt-1">Generate a portfolio page and export results as PDF/HTML/README.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN APP -->
+  <main class="max-w-7xl mx-auto px-4 pb-16" id="appRoot">
+    <!-- Inputs -->
+    <section class="grid md:grid-cols-2 gap-6" id="inputs">
+      <!-- Upload -->
+      <div class="card p-5">
+        <h2 class="font-semibold mb-3">Upload your resume</h2>
+        <div id="dropzone" class="flex flex-col items-center justify-center gap-4 border-2 border-dashed border-slate-300 hover:border-slate-400 rounded-2xl p-8 text-center cursor-pointer transition">
+          <div class="rounded-full bg-slate-100 p-3"><i data-lucide="file-up" class="w-6 h-6 text-slate-600"></i></div>
+          <div>
+            <p class="font-medium">Drop PDF or DOCX here</p>
+            <p class="text-sm text-slate-500">or click to browse</p>
+          </div>
+          <input type="file" id="resumeInput" accept=".pdf,.docx,.DOCX,.PDF" class="hidden" />
+        </div>
+        <div class="mt-4 text-sm text-slate-600" id="fileMeta"></div>
+        <div class="mt-5 flex flex-wrap items-center gap-3">
+          <button id="btnAnalyze" class="btn btn-primary"><i data-lucide="sparkles" class="w-4 h-4"></i> Analyze</button>
+          <button id="btnReset" class="btn btn-ghost"><i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset</button>
+          <button id="btnDownloadReport" class="btn btn-ghost hidden"><i data-lucide="download" class="w-4 h-4"></i> JSON</button>
+          <button id="btnPDF" class="btn btn-ghost hidden"><i data-lucide="file-down" class="w-4 h-4"></i> PDF Report</button>
+          <button id="btnCSV" class="btn btn-ghost hidden"><i data-lucide="table" class="w-4 h-4"></i> CSV Keywords</button>
+          <button id="btnLoadLast" class="btn btn-outline"><i data-lucide="history" class="w-4 h-4"></i> Load Last</button>
+        </div>
+        <p class="mt-3 text-xs text-slate-500">Tip: filename like <span style="font-family:monospace">Firstname_Lastname_Resume.pdf</span> helps ATS.</p>
+      </div>
+
+      <!-- JD -->
+      <div class="card p-5" id="jdbox">
+        <h2 class="font-semibold mb-3">(Optional) Paste Job Description</h2>
+        <textarea id="jobDesc" placeholder="Paste the JD to tailor keyword matching and suggestions…" class="w-full h-56 resize-y p-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+        <p class="text-xs text-slate-500 mt-2">If JD is present, JobTuner computes <strong>match %</strong> and lists <strong>missing keywords</strong> when you click Analyze.</p>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="mt-8 hidden">
+      <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Score -->
+        <div class="card p-5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold">ATS Score</h3>
+            <span id="scoreBadge" class="pill">—</span>
+          </div>
+          <div class="mt-4 progress"><span id="scoreBar"></span></div>
+          <div class="mt-2 text-sm text-slate-600" id="scoreText">Waiting…</div>
+          <ul class="mt-4 text-sm space-y-1 text-slate-700" id="scoreReasons"></ul>
+        </div>
+
+        <!-- Strengths -->
+        <div class="card p-5">
+          <h3 class="font-semibold">Strengths</h3>
+          <ul id="strengths" class="mt-3 text-sm space-y-2 list-disc pl-4"></ul>
+        </div>
+
+        <!-- Suggestions -->
+        <div class="card p-5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold">Suggestions</h3>
+            <span class="tag">prioritized</span>
+          </div>
+          <ol id="suggestions" class="mt-3 text-sm space-y-2 list-decimal pl-4"></ol>
+        </div>
+      </div>
+
+      <!-- Keywords + Smart Tags -->
+      <div class="grid lg:grid-cols-2 gap-6 mt-6">
+        <div class="card p-5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold">Keyword Match (vs JD)</h3>
+            <span id="kwPct" class="pill">—</span>
+          </div>
+          <p class="text-sm text-slate-600">Click a missing keyword to get a ready-to-use line with that term.</p>
+          <div class="mt-2 progress"><span id="kwBar"></span></div>
+          <div id="kwPresent" class="mt-2 flex flex-wrap gap-2"></div>
+          <div class="mt-4">
+            <h4 class="text-sm font-semibold mb-1">Top Missing Buckets</h4>
+            <div id="missingBuckets" class="space-y-3 text-sm"></div>
+          </div>
+          <details class="mt-3">
+            <summary class="text-sm font-semibold cursor-pointer">Full Missing List (click to generate a line)</summary>
+            <div id="kwMissingAll" class="mt-2 flex flex-wrap gap-2"></div>
+          </details>
+          <div class="mt-5">
+            <h4 class="text-sm font-semibold mb-1">Smart Lines</h4>
+            <div id="smartLines" class="text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 max-h-40 overflow-auto"></div>
+          </div>
+        </div>
+
+        <!-- Extracted text -->
+        <div class="card p-5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold">Extracted Plain Text</h3>
+            <span id="textWarn" class="tag tag-danger hidden">Low text (possibly scanned PDF)</span>
+          </div>
+          <pre id="rawText" class="mt-3 text-xs whitespace-pre-wrap" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; max-height: 320px; overflow:auto;"></pre>
+        </div>
+      </div>
+
+      <!-- Personalized GitHub Project Ideas -->
+      <div class="card p-5 mt-6">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold">Personalized GitHub Project Ideas</h3>
+          <button id="btnCopyIdeas" class="btn btn-ghost"><i data-lucide="copy" class="w-4 h-4"></i> Copy as README section</button>
+        </div>
+        <ul id="projectIdeas" class="mt-3 text-sm space-y-2 list-disc pl-4"></ul>
+      </div>
+
+      <!-- Dynamic ATS Score Overview (appears after Analyze) -->
+      <div id="scoreOverviewCard" class="card p-6 mt-6 hidden">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-slate-800">ATS Score Overview</h3>
+          <span id="soBadge" class="text-sm text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded-lg">— / 100</span>
+        </div>
+        <div class="progress mb-4"><span id="soBar" style="width:0%"></span></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+          <div class="bg-emerald-50 rounded-xl p-4 text-center">
+            <div class="text-xs uppercase tracking-wide text-emerald-800 font-semibold">Keyword Match</div>
+            <div id="soKw" class="text-2xl font-bold text-emerald-700 mt-1">—%</div>
+          </div>
+          <div class="bg-indigo-50 rounded-xl p-4 text-center">
+            <div class="text-xs uppercase tracking-wide text-indigo-800 font-semibold">Action Verbs</div>
+            <div id="soVerbs" class="text-2xl font-bold text-indigo-700 mt-1">—</div>
+          </div>
+        </div>
+        <ul class="text-xs text-slate-600 mt-2 space-y-1">
+          <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> Prioritized suggestions included</li>
+          <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> JD keyword gaps highlighted</li>
+          <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> Local-only processing</li>
+        </ul>
+      </div>
+
+      <!-- Portfolio CTA -->
+      <div class="mt-6 flex flex-wrap gap-3">
+        <button id="btnOpenPortfolio" class="btn btn-outline"><i data-lucide="briefcase" class="w-4 h-4"></i> Generate Portfolio</button>
+        <button id="btnExportPortfolioHTML" class="btn btn-ghost hidden"><i data-lucide="download" class="w-4 h-4"></i> Export Portfolio (HTML)</button>
+        <button id="btnExportPortfolioPDF" class="btn btn-ghost hidden"><i data-lucide="file-down" class="w-4 h-4"></i> Export Portfolio (PDF)</button>
+        <button id="btnExportPortfolioMD" class="btn btn-ghost hidden"><i data-lucide="github" class="w-4 h-4"></i> Export Portfolio (README.md)</button>
+      </div>
+    </section>
+
+    <!-- Bottom Portfolio Generation block -->
+    <section class="max-w-7xl mx-auto px-4 mt-8">
+      <div class="card p-5 md:p-6">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold text-slate-800">Portfolio Generation (from your Resume)</h3>
+          <button id="btnOpenPortfolioBottom" class="btn btn-primary">
+            <i data-lucide="briefcase" class="w-4 h-4"></i> Generate Portfolio
+          </button>
+        </div>
+        <p class="text-sm text-slate-600 mt-2">Uses the parsed resume text from your last analysis to build a clean portfolio preview. No image, just content.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Portfolio Modal -->
+  <div id="portfolioModal" class="modal">
+    <div class="panel card w-[min(900px,95vw)] p-5 md:p-7">
+      <div class="flex items-center justify-between gap-2">
+        <div class="text-xl font-bold">Portfolio Preview</div>
+        <div class="flex items-center gap-2">
+          <button id="btnDownloadPortfolioInline" class="btn btn-outline hidden"><i data-lucide="download" class="w-4 h-4"></i> Download HTML</button>
+          <button id="closePortfolio" class="btn btn-ghost"><i data-lucide="x" class="w-4 h-4"></i> Close</button>
+        </div>
+      </div>
+      <div id="portfolioRoot" class="mt-4"></div>
+    </div>
+  </div>
+
+  <script>
+    // Icons
+    window.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); });
+
+    // ===== Null-safe helpers =====
+    const $ = (id)=>document.getElementById(id);
+    const setHTML=(el,html)=>{ if(el) el.innerHTML = html; };
+    const setText=(el,txt)=>{ if(el) el.textContent = txt; };
+    const setWidth=(el,w)=>{ if(el) el.style.width = w; };
+    const show=(el)=>{ if(el) el.classList.remove('hidden'); };
+    const hide=(el)=>{ if(el) el.classList.add('hidden'); };
+    const toggle=(el,cond)=>{ if(!el) return; el.classList.toggle('hidden', !cond); };
+    const triggerDownload=(blob, filename)=>{ const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 1000); };
+
+    // ====== Elements ======
+    const resumeInput = $('resumeInput');
+    const dropzone = $('dropzone');
+    const fileMeta = $('fileMeta');
+    const btnAnalyze = $('btnAnalyze');
+    const btnReset = $('btnReset');
+    const btnDownloadReport = $('btnDownloadReport');
+    const btnPDF = $('btnPDF');
+    const btnCSV = $('btnCSV');
+    const btnLoadLast = $('btnLoadLast');
+    const jobDescEl = $('jobDesc');
+
+    const results = $('results');
+    const scoreBadge = $('scoreBadge');
+    const scoreBar = $('scoreBar');
+    const scoreText = $('scoreText');
+    const scoreReasons = $('scoreReasons');
+    const strengthsEl = $('strengths');
+    const suggestionsEl = $('suggestions');
+
+    const kwPct = $('kwPct');
+    const kwBar = $('kwBar');
+    const kwPresent = $('kwPresent');
+    const kwMissingAll = $('kwMissingAll');
+    const missingBuckets = $('missingBuckets');
+    const smartLines = $('smartLines');
+
+    const projectIdeas = $('projectIdeas');
+    const btnCopyIdeas = $('btnCopyIdeas');
+
+    const rawText = $('rawText');
+    const textWarn = $('textWarn');
+
+    const ctaUpload = $('ctaUpload');
+    const ctaJD = $('ctaJD');
+    const ctaAnalyze = $('ctaAnalyze');
+    const heroUpload = $('heroUpload');
+    const heroJD = $('heroJD');
+    const heroAnalyze = $('heroAnalyze');
+
+    const btnOpenPortfolio = $('btnOpenPortfolio');
+    const btnOpenPortfolioBottom = $('btnOpenPortfolioBottom');
+    const btnExportPortfolioHTML = $('btnExportPortfolioHTML');
+    const btnExportPortfolioPDF = $('btnExportPortfolioPDF');
+    const btnExportPortfolioMD = $('btnExportPortfolioMD');
+    const portfolioModal = $('portfolioModal');
+    const closePortfolio = $('closePortfolio');
+    const portfolioRoot = $('portfolioRoot');
+    const btnDownloadPortfolioInline = $('btnDownloadPortfolioInline');
+
+    // Dynamic ATS overview elements
+    const soCard  = $('scoreOverviewCard');
+    const soBadge = $('soBadge');
+    const soBar   = $('soBar');
+    const soKw    = $('soKw');
+    const soVerbs = $('soVerbs');
+
+    // Header/Hero CTAs
+    function scrollToInputs(){ $('inputs')?.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    ctaUpload?.addEventListener('click', () => { scrollToInputs(); resumeInput?.click(); });
+    ctaJD?.addEventListener('click', () => $('jdbox')?.scrollIntoView({ behavior:'smooth', block:'center' }));
+    ctaAnalyze?.addEventListener('click', () => btnAnalyze?.click());
+    heroUpload?.addEventListener('click', () => { scrollToInputs(); resumeInput?.click(); });
+    heroJD?.addEventListener('click', () => $('jdbox')?.scrollIntoView({ behavior:'smooth', block:'center' }));
+    heroAnalyze?.addEventListener('click', () => btnAnalyze?.click());
+
+    // Dropzone
+    ['dragenter','dragover'].forEach(evt => dropzone?.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.add('border-emerald-400','bg-emerald-50'); }));
+    ['dragleave','drop'].forEach(evt => dropzone?.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('border-emerald-400','bg-emerald-50'); }));
+    dropzone?.addEventListener('drop', e => { const f = e.dataTransfer.files?.[0]; if (f && resumeInput) { resumeInput.files = e.dataTransfer.files; onFilePicked(f); }});
+    dropzone?.addEventListener('click', () => resumeInput?.click());
+    resumeInput?.addEventListener('change', e => { const f = e.target.files?.[0]; if (f) onFilePicked(f); });
+    function onFilePicked(file){ setHTML(fileMeta, `<span class="pill">${file.name}</span> <span class="tag">${(file.size/1024).toFixed(1)} KB</span>`); }
+
+    // Helpers
+    const clean = s => (s||'').replace(/\u0000/g,' ').replace(/\s+/g,' ').trim();
+    function tokenize(text){return clean(text.toLowerCase()).replace(/[^a-z0-9+.#\- ]/g,' ').split(/\s+/).filter(Boolean);}    
+    function unique(arr){return Array.from(new Set(arr));}
+    function stem(w){return w.replace(/(ing|ed|ly|es|s)$/,'').replace(/(ment|tion|tions|ities|ity|al|er|or|ers|ors)$/,'');}
+    function hasBullets(text){return /(^|\n)\s*([•\-–—\*]|\u2022|\u25cf)\s+/m.test(text) || /\n\d+\.\s+/.test(text);}    
+    function extractEmails(t){const re=/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig;return unique(t.match(re)||[]);}    
+    function extractPhones(t){const re=/(\+?\d[\d\s().-]{8,}\d)/g;return unique((t.match(re)||[]).map(s=>s.trim()));}
+    function extractLinks(t){const re=/(https?:\/\/[^\s)]+)|(linkedin\.com\/[^\s)]+)|(github\.com\/[^\s)]+)/ig;return unique(t.match(re)||[]);}    
+    function countActionVerbs(t){const verbs=['led','built','created','developed','designed','delivered','automated','optimized','improved','reduced','migrated','implemented','integrated','deployed','analyzed','modeled','forecasted','visualized','orchestrated','scripted','configured','managed','owned','launched','refactored','debugged','mentored','collaborated'];const bag=new Set(tokenize(t));return verbs.filter(v=>bag.has(v)).length;}
+    const stopWords=new Set(['and','the','for','with','from','that','this','are','was','were','will','shall','able','such','using','use','into','onto','over','under','per','via','etc','you','your','our','their','they','he','she','him','her','them','work','working','worked','year','years','month','months','responsible','responsibilities','role','roles','team','teams','company','organization','project','projects','resume','curriculum','vitae','cv','page','pages','strong','excellent','experienced','proven','about','job','title','location','preferred','preference','open','candidate','contract','type','within','identify','challenges','opportunities','drive','growth','maintain','standard','robust','processes','familiar','like','concepts','translate','complex']);
+
+    const hardSkillHints=['sql','python','r','excel','powerbi','tableau','lookerstudio','pbi','etl','pipeline','modeling','visualization','statistics','ml','machine','learning','gis','arcgis','qgis','cad','p6','unifier','sap','erp','snowflake','databricks','spark','pandas','numpy','dax','m','power','query','ssrs','ssas','ssms','spss'];
+    const platformHints=['azure','aws','gcp','oracle','salesforce','servicenow','linux','windows','vmware','kubernetes','docker','adobe','journey','analytics'];
+    const certHints=['pmp','aws','azure','gcp','oracle','scrum','csm','six','sigma','itil','security+','network+'];
+    const softSkillHints=['stakeholder','communication','presentation','cross-functional','initiative','collaboration','decision','leadership','mentorship','analytical','detail','meticulous','user-friendly'];
+
+    function extractJDKeywords(jdText){
+      const tokens = tokenize(jdText);
+      const originals = tokens.filter(t=>t.length>2 && !stopWords.has(t));
+      const stemMap=new Map();
+      originals.forEach(o=>{const st=stem(o); if(!stemMap.has(st)) stemMap.set(st,new Set()); stemMap.get(st).add(o);});
+      return stemMap;
+    }
+    function extractResumeStems(text){ const tokens=tokenize(text); return new Set(tokens.map(stem).filter(w=>w.length>2 && !stopWords.has(w))); }
+    function bucketize(words){
+      const lower=words.map(w=>w.toLowerCase());
+      const buckets={Hard_Skills:[],Platforms:[],Certifications:[],Soft_Skills:[],Other:[]};
+      lower.forEach((w,i)=>{ const orig=words[i];
+        if(hardSkillHints.some(h=>w.includes(h))) buckets.Hard_Skills.push(orig);
+        else if(platformHints.some(h=>w.includes(h))) buckets.Platforms.push(orig);
+        else if(certHints.some(h=>w.includes(h))) buckets.Certifications.push(orig);
+        else if(softSkillHints.some(h=>w.includes(h))) buckets.Soft_Skills.push(orig);
+        else buckets.Other.push(orig);
+      });
+      return buckets;
+    }
+    function renderBucket(container,title,arr){
+      const uniq=Array.from(new Set(arr)).slice(0,20); if(!uniq.length || !container) return;
+      const wrap=document.createElement('div');
+      const h=document.createElement('div'); h.className='text-sm font-semibold mb-1'; h.textContent=`${title} (${uniq.length})`; wrap.appendChild(h);
+      const line=document.createElement('div'); line.className='flex flex-wrap gap-2';
+      uniq.forEach(k=>{ const s=document.createElement('span'); s.className='tag tag-danger'; s.textContent=k; s.title='Click to get a sample sentence'; s.addEventListener('click',()=>addSmartLine(k)); line.appendChild(s); });
+      wrap.appendChild(line); container.appendChild(wrap);
+    }
+
+    // File parsing
+    async function readFileAsArrayBuffer(file){ return new Promise((resolve,reject)=>{ const fr=new FileReader(); fr.onload=()=>resolve(fr.result); fr.onerror=reject; fr.readAsArrayBuffer(file); }); }
+    async function extractTextFromPDF(arrayBuffer){ const lib=window._pdfjsLib; const loadingTask=lib.getDocument({ data: arrayBuffer }); const pdf=await loadingTask.promise; let fullText=''; for(let i=1;i<=pdf.numPages;i++){ const page=await pdf.getPage(i); const content=await page.getTextContent(); fullText+=content.items.map(it=>it.str).join('\n')+'\n'; } return fullText; }
+    async function extractTextFromDOCX(arrayBuffer){ const { value } = await window.mammoth.convertToHtml({ arrayBuffer }); return value.replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,'\n').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim(); }
+    async function getResumeText(file){ const buf=await readFileAsArrayBuffer(file); const ext=file.name.toLowerCase().split('.').pop(); if(ext==='pdf') return extractTextFromPDF(buf); if(ext==='docx') return extractTextFromDOCX(buf); throw new Error('Unsupported file format. Please use PDF or DOCX.'); }
+
+    // Sections + scoring
+    function detectSections(text){ return { summary:/(summary|objective|profile)\b/i.test(text), experience:/(experience|work history|employment)\b/i.test(text), education:/(education|academics)\b/i.test(text), skills:/\bskills?\b/i.test(text), projects:/\bprojects?\b/i.test(text), certifications:/\b(certification|certifications|licenses?)\b/i.test(text) }; }
+
+    function scoreResume(text,jdText,fileName=''){
+      const words=tokenize(text); const wordCount=words.length; const emails=extractEmails(text); const phones=extractPhones(text); const links=extractLinks(text);
+      const bullets=hasBullets(text); const actionVerbCount=countActionVerbs(text); const metricsCount=(text.match(/[%$]\s?\d|[\s(]\d{1,3}(?:\.\d+)?%|saved|reduced|improved|increased|decreased/gi)||[]).length; const sections=detectSections(text); const fileBonus=/resume|cv/i.test(fileName)&&/[a-z].+_[a-z]/i.test(fileName)?2:0;
+      let lengthScore=wordCount<250?4:wordCount<=1100?10:6; const sectionWeights={summary:5,experience:10,education:6,skills:5,projects:3,certifications:1}; let sectionScore=0; for(const [k,w] of Object.entries(sectionWeights)){ if(sections[k]) sectionScore+=w; }
+      const contactScore=Math.min(10,(emails.length?4:0)+(phones.length?3:0)+(links.length?3:0)); const bulletScore=bullets?5:2; const verbScore=Math.min(10,actionVerbCount); const formatScore=10;
+
+      // JD match
+      let jdScore=0, kwStats={pct:0,present:[],missing:[],missingBuckets:null}, jdActive=false;
+      if(jdText && jdText.trim().length>10){ jdActive=true; const jdStemMap=extractJDKeywords(jdText); const resumeStems=extractResumeStems(text); const present=[], missing=[]; jdStemMap.forEach((origSet,st)=>{ const originals=Array.from(origSet); if(resumeStems.has(st)) present.push(originals[0]); else missing.push(originals[0]);}); const pct=(present.length+missing.length)?Math.round((present.length/(present.length+missing.length))*100):0; jdScore=Math.min(25,Math.round(pct*0.25)); const buckets=bucketize(missing); kwStats={ pct, present, missing, missingBuckets:buckets };
+      }
+      const total=Math.round(sectionScore+jdScore+contactScore+bulletScore+verbScore+lengthScore+formatScore+fileBonus);
+
+      const suggests=[]; const add=s=>suggests.push(s);
+      if(!sections.experience) add('[Content] Add an “Experience” section with 3–5 metric-led bullets per role.');
+      if(!sections.skills) add('[Content] Include a compact “Skills” section grouped by category.');
+      if(!sections.education) add('[Content] Add “Education” (degree • institution • year).');
+      if(actionVerbCount<8) add('[Writing] Start bullets with stronger action verbs (Automated, Optimized, Delivered…).');
+      if(metricsCount<3) add('[Impact] Add metrics (%/$/time) to show outcomes (e.g., “Reduced cycle time by 35%”).');
+      if(wordCount<300) add('[Depth] Expand bullets: what you did, how you did it, and impact.');
+      if(wordCount>1100) add('[Length] Trim to 1–2 pages; remove low-impact details & repetition.');
+      if(!links.some(l=>/linkedin\.com/i.test(l))) add('[Contact] Add a custom LinkedIn URL.');
+      if(!bullets) add('[Format] Convert paragraphs into concise bullets for ATS parsing.');
+      if(jdActive && kwStats.missing.length) add('[Keywords] Add missing role-specific terms (see “Top Missing Keywords”).');
+      const order=['[Content]','[Impact]','[Keywords]','[Writing]','[Format]','[Length]','[Contact]','[Depth]']; suggests.sort((a,b)=>(order.findIndex(k=>a.startsWith(k)))-(order.findIndex(k=>b.startsWith(k))));
+
+      const strengths=[]; if(sections.experience) strengths.push('Experience section detected.'); if(sections.skills) strengths.push('Skills section present.'); if(sections.education) strengths.push('Education section present.'); if(bullets) strengths.push('Uses bullet points for scannability.'); if(actionVerbCount>=10) strengths.push('Strong action-verb usage.'); if(metricsCount>=3) strengths.push('Good use of measurable outcomes.'); if(emails.length) strengths.push('Professional email present.'); if(phones.length) strengths.push('Phone number present.'); if(links.some(l=>/linkedin\.com/i.test(l))) strengths.push('LinkedIn link detected.');
+
+      return { total:Math.max(0,Math.min(100,total)), wordCount, bullets, actionVerbCount, metricsCount, strengths, suggests, jd:kwStats, jdActive, sections, emails, phones, links };
+    }
+
+    // ===== Persist =====
+    let lastReport = null; // for exports
+    function saveLast(){ if(!lastReport) return; try{ localStorage.setItem('jobtuner:lastReport', JSON.stringify(lastReport)); }catch{} }
+    function loadLast(){ try{ const raw=localStorage.getItem('jobtuner:lastReport'); if(!raw) return; const parsed=JSON.parse(raw); lastReport=parsed; hydrateFromReport(parsed); }catch(e){ alert('Could not load last report.'); } }
+    btnLoadLast?.addEventListener('click', loadLast);
+
+    // ===== Analyze flow =====
+    const showOrHideResults = (showIt)=>{ if(!results) return; results.classList.toggle('hidden', !showIt); };
+    btnAnalyze?.addEventListener('click', analyze);
+    btnReset?.addEventListener('click', ()=>{
+      if(resumeInput) resumeInput.value='';
+      if(jobDescEl) jobDescEl.value='';
+      setText(fileMeta,'');
+      showOrHideResults(false);
+      hide(btnDownloadReport); hide(btnPDF); hide(btnCSV);
+      setHTML(kwPresent,''); setHTML(kwMissingAll,''); setHTML(missingBuckets,''); setHTML(smartLines,''); setText(kwPct,'—'); setWidth(kwBar,'0%'); setHTML(projectIdeas,'');
+      hide(soCard);
+    });
+
+    async function analyze(){
+      const file=resumeInput?.files?.[0];
+      if(!file){ alert('Please upload a PDF or DOCX resume first.'); return; }
+      toggleAnalyzing(true);
+      try{
+        const text=await getResumeText(file);
+        const jdText=jobDescEl?.value||'';
+        const r=scoreResume(text,jdText,file.name);
+        lastReport={ report:r, resumeFile:file.name, resumeText:text, jd: jdText, generatedAt:new Date().toISOString() };
+        saveLast();
+        hydrateFromReport(lastReport);
+      }catch(err){
+        console.error(err);
+        alert('Failed to read file. Make sure it is a valid PDF or DOCX.');
+      } finally {
+        toggleAnalyzing(false);
+      }
+    }
+
+    function hydrateFromReport(data){
+      const { report:r, resumeText } = data;
+      showOrHideResults(true);
+
+      setText(rawText, resumeText||'');
+      textWarn?.classList.toggle('hidden', (resumeText||'').length>120);
+
+      setText(scoreBadge, `${r.total}/100`);
+      setWidth(scoreBar, `${r.total}%`);
+      setText(scoreText, `Word count: ${r.wordCount.toLocaleString()} • Action verbs: ${r.actionVerbCount} • Metrics: ${r.metricsCount} • Bulleted: ${r.bullets?'Yes':'No'}`);
+
+      setHTML(scoreReasons,'');
+      if(scoreReasons){
+        const li=document.createElement('li');
+        const presentSections=Object.entries(r.sections).filter(([k,v])=>v).map(([k])=>k).join(', ')||'—';
+        li.textContent=`Sections present: ${presentSections}`;
+        scoreReasons.appendChild(li);
+      }
+
+      setHTML(strengthsEl,'');
+      (r.strengths.length?r.strengths:['Add core sections & contacts to unlock strengths.']).forEach(s=>{
+        if(!strengthsEl) return; const li=document.createElement('li'); li.textContent=s; strengthsEl.appendChild(li);
+      });
+
+      setHTML(suggestionsEl,'');
+      (r.suggests.length?r.suggests:['Tailor bullets with metrics and mirror JD keywords.']).forEach(s=>{
+        if(!suggestionsEl) return; const li=document.createElement('li'); li.textContent=s; suggestionsEl.appendChild(li);
+      });
+
+      setHTML(kwPresent,''); setHTML(kwMissingAll,''); setHTML(missingBuckets,''); setHTML(smartLines,'');
+      if(r.jdActive){
+        setText(kwPct, `${r.jd.pct}%`); setWidth(kwBar, `${r.jd.pct}%`);
+        r.jd.present.slice(0,80).forEach(k=>{
+          if(!kwPresent) return;
+          const span=document.createElement('span'); span.className='tag tag-good'; span.textContent=k; kwPresent.appendChild(span);
+        });
+        const b=r.jd.missingBuckets||{Hard_Skills:[],Platforms:[],Certifications:[],Soft_Skills:[],Other:[]};
+        renderBucket(missingBuckets,'Hard skills / Tools',b.Hard_Skills);
+        renderBucket(missingBuckets,'Platforms',b.Platforms);
+        renderBucket(missingBuckets,'Certifications',b.Certifications);
+        renderBucket(missingBuckets,'Soft Skills',b.Soft_Skills);
+        Array.from(new Set(r.jd.missing)).forEach(k=>{
+          if(!kwMissingAll) return;
+          const span=document.createElement('span'); span.className='tag tag-danger'; span.textContent=k; span.title='Click to get a sample sentence'; span.addEventListener('click',()=>addSmartLine(k)); kwMissingAll.appendChild(span);
+        });
+      }else{
+        setText(kwPct,'—'); setWidth(kwBar,'0%');
+        if(missingBuckets){
+          const info=document.createElement('div'); info.className='text-sm text-slate-600'; info.textContent='Paste a JD to compute match % and missing keywords.'; missingBuckets.appendChild(info);
+        }
+      }
+
+      // Personalized GitHub Project Ideas
+      if(projectIdeas){
+        const ideas = generateProjectIdeas(r);
+        setHTML(projectIdeas, ideas.map(i=>`<li><strong>${i.title}</strong> — ${i.desc}</li>`).join(''));
+        if (btnCopyIdeas){
+          btnCopyIdeas.onclick = () => {
+            const md = ideas.map(i=>`- **${i.title}** — ${i.desc}`).join('\n');
+            navigator.clipboard.writeText(md).then(()=>{
+              setText(btnCopyIdeas, 'Copied!');
+              setTimeout(()=>{ btnCopyIdeas.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i> Copy as README section'; if(window.lucide) lucide.createIcons(); }, 1200);
+            });
+          };
+        }
+      }
+
+      // Dynamic ATS Overview near Generate Portfolio
+      if (soCard) {
+        show(soCard);
+        setText(soBadge, `${r.total}/100`);
+        setWidth(soBar, `${r.total}%`);
+        setText(soKw, r.jdActive ? `${r.jd.pct}%` : '—%');
+        setText(soVerbs, r.actionVerbCount);
+      }
+
+      show(btnDownloadReport); show(btnPDF);
+      toggle(btnCSV, (r.jdActive && r.jd.missing && r.jd.missing.length));
+      if(window.lucide) lucide.createIcons();
+    }
+
+    function toggleAnalyzing(isOn){
+      if(!btnAnalyze) return;
+      btnAnalyze.disabled=isOn;
+      btnAnalyze.innerHTML=isOn?'<span>Analyzing…</span>':'<i data-lucide="sparkles" class="w-4 h-4"></i> Analyze';
+      if(window.lucide && !isOn) lucide.createIcons();
+    }
+
+    // ===== Smart Lines =====
+    function addSmartLine(keyword){
+      const line = sampleLineFor(keyword);
+      if(!smartLines) return;
+      const row=document.createElement('div'); row.className='flex items-start justify-between gap-2 py-1';
+      const p=document.createElement('p'); p.textContent='• '+line; p.className='flex-1'; row.appendChild(p);
+      const btn=document.createElement('button'); btn.className='btn btn-ghost'; btn.innerHTML='<i data-lucide="copy" class="w-4 h-4"></i> Copy'; btn.addEventListener('click',()=>{ navigator.clipboard.writeText(line); btn.textContent='Copied!'; setTimeout(()=>btn.innerHTML='<i data-lucide="copy" class="w-4 h-4"></i> Copy',1200); }); row.appendChild(btn);
+      smartLines.appendChild(row); if(window.lucide) lucide.createIcons();
+    }
+    function sampleLineFor(k){
+      const kw=k.toLowerCase();
+      if(hardSkillHints.some(h=>kw.includes(h))) return `Implemented ${k} pipelines to automate data flows, improving reliability and reducing manual effort by 30%.`;
+      if(platformHints.some(h=>kw.includes(h))) return `Deployed workloads on ${k} with least-privilege access and cost monitoring to meet security and budget targets.`;
+      if(certHints.some(h=>kw.includes(h))) return `Pursuing ${k} certification to formalize knowledge and align with team standards.`;
+      if(softSkillHints.some(h=>kw.includes(h))) return `Drove cross-functional ${k} to align stakeholders, unblock decisions, and deliver on schedule.`;
+      return `Added ${k} to role-specific accomplishments and aligned it to measurable outcomes.`;
+    }
+
+    // ===== Project Ideas =====
+    function generateProjectIdeas(r){
+      const present=(r.jd?.present||[]).map(s=>s.toLowerCase());
+      const missing=(r.jd?.missing||[]).map(s=>s.toLowerCase());
+      const bag=new Set([...present,...missing]);
+      const has=(k)=>[...bag].some(x=>x.includes(k));
+      const ideas=[];
+      if(has('etl')||has('pipeline')||has('spark')||has('databricks')){
+        ideas.push({title:'ATS Resume Analytics Pipeline',desc:'Ingest resumes, parse text, model ATS features, and publish dashboards (Airflow/dbt/Spark + Power BI).'});
+      }
+      if(has('ml')||has('machine')||has('nlp')){
+        ideas.push({title:'JD ↔ Resume Semantic Matcher',desc:'Embeddings-based semantic matching with sentence-transformers + FAISS + FastAPI.'});
+      }
+      if(has('react')||has('next')||has('tailwind')){
+        ideas.push({title:'Portfolio Generator (Next.js)',desc:'Generate & deploy a personal portfolio from a resume to Vercel with SEO and themes.'});
+      }
+      if(has('cypress')||has('playwright')||has('selenium')){
+        ideas.push({title:'Resume Checker E2E Tests',desc:'Automated test suite for upload, parsing, and scoring flows with CI artifacts.'});
+      }
+      if(has('gis')||has('arcgis')||has('qgis')){
+        ideas.push({title:'Geo-Jobs Mapper',desc:'Map job postings with geocoded companies and commute isochrones (GeoPandas/Leaflet).'});
+      }
+      if(!ideas.length){
+        ideas.push({title:'Career Metrics Dashboard',desc:'Track applications → interviews → offers with funnel metrics in Power BI/SQLite.'});
+      }
+      return ideas.slice(0,8);
+    }
+
+    // ===== Portfolio Preview (minimal; uses lastReport.resumeText) =====
+    function openPortfolio(){
+      if(!lastReport || !lastReport.resumeText){
+        alert('Run Analyze first — I need your parsed resume text.');
+        return;
+      }
+      const t = lastReport.resumeText;
+      const email = (t.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)||[''])[0];
+      const name  = (t.split('\n')[0] || 'Your Name').trim().slice(0,80);
+      const lines = t.split('\n').map(s=>s.trim()).filter(Boolean).slice(0,200);
+
+      const aboutIx = lines.findIndex(l=>/summary|objective|profile/i.test(l));
+      const skillsIx = lines.findIndex(l=>/\bskills?\b/i.test(l));
+      const expIx   = lines.findIndex(l=>/experience|employment|work history/i.test(l));
+      const eduIx   = lines.findIndex(l=>/education|academics/i.test(l));
+
+      function sliceSection(startIx){
+        if(startIx<0) return [];
+        const next = [skillsIx,expIx,eduIx,aboutIx].filter(i=>i>startIx).sort((a,b)=>a-b)[0] ?? lines.length;
+        return lines.slice(startIx+1, next).slice(0,40);
+      }
+
+      const about  = sliceSection(aboutIx).join(' ') || 'Driven professional showcasing selected work and impact.';
+      const skills = sliceSection(skillsIx).join(' • ').replace(/\s*[•\-–]\s*/g,' • ').slice(0,300);
+      const exp    = sliceSection(expIx).slice(0,15).join('<br>');
+      const edu    = sliceSection(eduIx).slice(0,8).join('<br>');
+
+      setHTML(portfolioRoot, `
+        <div class="space-y-4">
+          <div class="rounded-2xl bg-slate-50 p-4">
+            <div class="text-2xl font-bold">${name}</div>
+            <div class="text-slate-600">${email || ''}</div>
+          </div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="md:col-span-2 space-y-4">
+              <div class="card p-4">
+                <div class="font-semibold mb-1">About</div>
+                <p class="text-sm text-slate-700">${about}</p>
+              </div>
+              <div class="card p-4">
+                <div class="font-semibold mb-1">Experience Highlights</div>
+                <div class="text-sm text-slate-700 leading-relaxed">${exp || 'Add achievement-focused bullets with metrics.'}</div>
+              </div>
+            </div>
+            <div class="space-y-4">
+              <div class="card p-4">
+                <div class="font-semibold mb-1">Skills</div>
+                <p class="text-sm text-slate-700">${skills || '—'}</p>
+              </div>
+              <div class="card p-4">
+                <div class="font-semibold mb-1">Education</div>
+                <div class="text-sm text-slate-700">${edu || '—'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+
+      portfolioModal?.classList.add('open');
+      show(btnDownloadPortfolioInline);
+      show(btnExportPortfolioHTML); show(btnExportPortfolioPDF); show(btnExportPortfolioMD);
+      if(window.lucide) lucide.createIcons();
+    }
+
+    closePortfolio?.addEventListener('click', ()=> portfolioModal?.classList.remove('open'));
+    btnOpenPortfolio?.addEventListener('click', openPortfolio);
+    btnOpenPortfolioBottom?.addEventListener('click', openPortfolio);
+
+    // ===== Export handlers =====
+    btnDownloadReport?.addEventListener('click', ()=>{
+      if(!lastReport){ alert('Analyze first.'); return; }
+      const blob = new Blob([JSON.stringify(lastReport, null, 2)], {type:'application/json'});
+      triggerDownload(blob, 'jobtuner_report.json');
+    });
+
+    btnCSV?.addEventListener('click', ()=>{
+      if(!lastReport?.report?.jdActive){ alert('Paste a JD and Analyze first.'); return; }
+      const r = lastReport.report;
+      const rows = [['type','keyword']];
+      (r.jd.present||[]).forEach(k=>rows.push(['present',k]));
+      (r.jd.missing||[]).forEach(k=>rows.push(['missing',k]));
+      const csv = rows.map(row=>row.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      triggerDownload(blob, 'jobtuner_keywords.csv');
+    });
+
+    btnPDF?.addEventListener('click', ()=>{
+      if(!lastReport){ alert('Analyze first.'); return; }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const r = lastReport.report;
+
+      doc.setFontSize(14);
+      doc.text('JobTuner — ATS Report', 14, 16);
+      doc.setFontSize(10);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
+      doc.text(`File: ${lastReport.resumeFile||''}`, 14, 28);
+      doc.text(`Score: ${r.total}/100`, 14, 34);
+      doc.text(`Word count: ${r.wordCount} | Action verbs: ${r.actionVerbCount} | Metrics: ${r.metricsCount}`, 14, 40);
+
+      const suggestions = (r.suggests||[]).map(s=>[s]);
+      if(suggestions.length){
+        doc.autoTable({ startY: 46, head:[['Suggestions (prioritized)']], body: suggestions, styles:{ fontSize:9 } });
+      }
+
+      let startY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 6 : 46;
+      if(r.jdActive){
+        const miss = (r.jd.missing||[]).slice(0,60).map(k=>[k]);
+        doc.autoTable({ startY, head:[[`Missing Keywords (${r.jd.pct}% match)`]], body: miss, styles:{ fontSize:9 } });
+      }
+
+      doc.save('jobtuner_report.pdf');
+    });
+
+    function buildPortfolioHTML(){
+      const customCSS = `
+        body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial}
+        .card{border-radius:16px;background:#fff;box-shadow:0 10px 30px rgba(15,23,42,.08)}
+      `;
+      const shell = (inner)=>`<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio</title>
+<script src="https://cdn.tailwindcss.com"><\/script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.js"><\/script>
+<style>${customCSS}</style>
+</head>
+<body class="bg-slate-50">
+  <main class="max-w-4xl mx-auto p-6">${inner}</main>
+  <script>if(window.lucide){lucide.createIcons();}<\/script>
+</body>
+</html>`;
+      return shell(portfolioRoot?.innerHTML||'');
+    }
+
+    function downloadPortfolioHTML(){
+      if(!portfolioRoot || !portfolioRoot.innerHTML){ alert('Open Portfolio Preview first.'); return; }
+      const html = buildPortfolioHTML();
+      const blob = new Blob([html], {type:'text/html'});
+      triggerDownload(blob, 'portfolio.html');
+    }
+
+    btnExportPortfolioHTML?.addEventListener('click', downloadPortfolioHTML);
+    btnDownloadPortfolioInline?.addEventListener('click', downloadPortfolioHTML);
+
+    btnExportPortfolioMD?.addEventListener('click', ()=>{
+      if(!portfolioRoot){ alert('Open Portfolio Preview first.'); return; }
+      const text = portfolioRoot.innerText || '';
+      const md = `# Portfolio\n\n${text.replace(/\n{2,}/g,'\n\n')}`;
+      const blob = new Blob([md], {type:'text/markdown'});
+      triggerDownload(blob, 'PORTFOLIO_README.md');
+    });
+
+    btnExportPortfolioPDF?.addEventListener('click', ()=>{
+      if(!portfolioRoot){ alert('Open Portfolio Preview first.'); return; }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:'pt', format:'a4' });
+      const lines = (portfolioRoot.innerText||'').split('\n').filter(Boolean);
+      let y = 40;
+      doc.setFont('helvetica','bold'); doc.setFontSize(14);
+      doc.text('Portfolio', 40, y); y += 20;
+      doc.setFont('helvetica','normal'); doc.setFontSize(11);
+      lines.forEach(l=>{ if(y>780){ doc.addPage(); y=40; } doc.text(l, 40, y); y += 16; });
+      doc.save('portfolio.pdf');
+    });
+  </script>
+</body>
+</html>
