@@ -12,13 +12,10 @@
   <img src="https://img.shields.io/badge/Language-JavaScript-f7df1e?style=for-the-badge">
 </p>
 
----
-
 ## 🧭 Overview
 **JobTuner** is an intelligent web app that empowers users to optimize their resumes for **Applicant Tracking Systems (ATS)** and build exportable portfolios — all without uploading any data to a server.  
 Everything runs **locally in your browser**, ensuring 100% privacy and instant results.
 
----
 
 ## ✨ Key Features
 
@@ -32,7 +29,6 @@ Everything runs **locally in your browser**, ensuring 100% privacy and instant r
 | 📊 **Multi-format Export** | Export results as JSON, CSV, PDF, or Markdown |
 | 🔒 **Privacy First** | Uses LocalStorage for saving last session securely |
 
----
 
 ## 🧩 Tech Stack
 
@@ -46,7 +42,6 @@ Everything runs **locally in your browser**, ensuring 100% privacy and instant r
 | **Portfolio Export** | HTML, Markdown, PDF | Auto-creates personal portfolio |
 | **Storage** | LocalStorage API | Stores last session locally |
 
----
 
 ## ⚙️ Setup & Usage
 
@@ -70,7 +65,6 @@ Then visit:
 http://localhost:3000
 ```
 
----
 
 ## 🧠 How It Works
 
@@ -80,7 +74,6 @@ http://localhost:3000
 4️⃣ **Smart Lines** – Instantly improve your bullets with AI-style guidance.
 5️⃣ **Generate Portfolio** – Export results as HTML, PDF, or README.md.
 
----
 
 ## 📈 Performance Summary
 
@@ -94,7 +87,6 @@ http://localhost:3000
 | Memory Usage               | ~80 MB         |
 | Crashes / Downtime         | None observed  |
 
----
 
 ## 💬 User Feedback Highlights
 
@@ -108,7 +100,6 @@ http://localhost:3000
 
 > “This tool not only improved my resume’s ATS score but also gave me a polished portfolio for interviews!” — *Student User*
 
----
 
 ## 🔐 Privacy by Design
 
@@ -116,7 +107,6 @@ No data leaves your browser — period.
 All analysis, keyword matching, and portfolio generation are handled **locally**.
 No APIs, no cloud storage, no third-party tracking.
 
----
 
 ## 🌍 Future Enhancements
 
@@ -126,7 +116,6 @@ No APIs, no cloud storage, no third-party tracking.
 * ☁️ Optional cloud portfolio publishing
 * 🔄 Integration with LinkedIn / GitHub APIs
 
----
 
 ## 🧑‍💻 Contributors
 
@@ -137,13 +126,11 @@ No APIs, no cloud storage, no third-party tracking.
 
 🎓 *Chandigarh University, Department of Computer Science & Engineering*
 
----
 
 ## 🪪 License
 
 This project is released under the **MIT License** — you are free to use, modify, and distribute it with proper attribution.
 
----
 
 ## ⭐ Support
 
@@ -152,12 +139,8 @@ If you like this project:
 🐛 **Report bugs** or suggest features in [Issues](../../issues)
 🔁 **Fork it** and create your own version
 
----
 
 <p align="center">
   <b>Built with ❤️ by Aaryan Maheshwari & Chayan Gope</b><br>
   <i>Empowering job seekers through smarter resumes and portfolios.</i>
 </p>
-```
-
----
