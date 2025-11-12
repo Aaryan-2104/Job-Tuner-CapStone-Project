@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="banner.png" alt="ATS Resume Analyzer & Portfolio Generator Banner" width="900">
+  <img src="Banner.png" alt="ATS Resume Analyzer & Portfolio Generator Banner" width="900">
 </p>
 
 <h1 align="center">🚀 JobTuner – ATS Resume Analyzer & Portfolio Generator</h1>
