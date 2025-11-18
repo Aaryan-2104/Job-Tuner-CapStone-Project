@@ -265,16 +265,21 @@
         </ul>
       </div>
 
-      <!-- Portfolio CTA -->
+      <!-- Portfolio CTA: export buttons (hidden until portfolio is opened once) -->
       <div class="mt-6 flex flex-wrap gap-3">
-        <button id="btnOpenPortfolio" class="btn btn-outline"><i data-lucide="briefcase" class="w-4 h-4"></i> Generate Portfolio</button>
-        <button id="btnExportPortfolioHTML" class="btn btn-ghost hidden"><i data-lucide="download" class="w-4 h-4"></i> Export Portfolio (HTML)</button>
-        <button id="btnExportPortfolioPDF" class="btn btn-ghost hidden"><i data-lucide="file-down" class="w-4 h-4"></i> Export Portfolio (PDF)</button>
-        <button id="btnExportPortfolioMD" class="btn btn-ghost hidden"><i data-lucide="github" class="w-4 h-4"></i> Export Portfolio (README.md)</button>
+        <button id="btnExportPortfolioHTML" class="btn btn-ghost hidden">
+          <i data-lucide="download" class="w-4 h-4"></i> Export Portfolio (HTML)
+        </button>
+        <button id="btnExportPortfolioPDF" class="btn btn-ghost hidden">
+          <i data-lucide="file-down" class="w-4 h-4"></i> Export Portfolio (PDF)
+        </button>
+        <button id="btnExportPortfolioMD" class="btn btn-ghost hidden">
+          <i data-lucide="github" class="w-4 h-4"></i> Export Portfolio (README.md)
+        </button>
       </div>
     </section>
 
-    <!-- >>> ONLY ADDITION: Bottom Portfolio Generation block <<< -->
+    <!-- Bottom Portfolio Generation block -->
     <section class="max-w-7xl mx-auto px-4 mt-8">
       <div class="card p-5 md:p-6">
         <div class="flex items-center justify-between">
@@ -286,7 +291,65 @@
         <p class="text-sm text-slate-600 mt-2">Uses the parsed resume text from your last analysis to build a clean portfolio preview. No image, just content.</p>
       </div>
     </section>
-    <!-- >>> END ONLY ADDITION <<< -->
+    <!-- ABOUT US -->
+<section class="max-w-7xl mx-auto px-4 mt-12">
+  <div class="card p-6">
+    <h2 class="text-2xl font-bold mb-2">About Us</h2>
+    <p class="text-slate-700 text-sm leading-relaxed">
+      JobTuner is developed with passion and precision by 
+      <strong>Aaryan Maheshwari</strong> and <strong>Chayan Gope</strong>.  
+      Our mission is simple — empower job seekers with intelligent tools that analyze,
+      optimize, and elevate resumes for modern ATS systems, while also helping users
+      build professional portfolios instantly.
+    </p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="max-w-7xl mx-auto px-4 mt-10 mb-16">
+  <div class="card p-6">
+    <h2 class="text-2xl font-bold mb-4">FAQ</h2>
+
+    <details class="mb-3">
+      <summary class="font-semibold cursor-pointer text-slate-800">
+        How does JobTuner analyze my resume?
+      </summary>
+      <p class="text-sm text-slate-600 mt-2">
+        JobTuner extracts your resume text locally in your browser, checks structure,
+        sections, metrics, action verbs, and keyword matching against the job description.
+      </p>
+    </details>
+
+    <details class="mb-3">
+      <summary class="font-semibold cursor-pointer text-slate-800">
+        Is my data uploaded anywhere?
+      </summary>
+      <p class="text-sm text-slate-600 mt-2">
+        No. Everything runs 100% locally in your browser. Nothing is uploaded or stored on any server.
+      </p>
+    </details>
+
+    <details class="mb-3">
+      <summary class="font-semibold cursor-pointer text-slate-800">
+        How is the portfolio generated?
+      </summary>
+      <p class="text-sm text-slate-600 mt-2">
+        JobTuner uses AI-style parsing logic to extract sections from your resume text and
+        formats them into a clean portfolio layout you can export as HTML, PDF, or README.md.
+      </p>
+    </details>
+
+    <details>
+      <summary class="font-semibold cursor-pointer text-slate-800">
+        Why are my keywords missing even if I wrote similar things?
+      </summary>
+      <p class="text-sm text-slate-600 mt-2">
+        JobTuner uses normalized stem-matching. If exact terms aren’t present or are written very differently,
+        they may be flagged as missing. You can click missing keywords to get auto-generated bullet lines.
+      </p>
+    </details>
+  </div>
+</section>
 
   </main>
 
@@ -354,8 +417,8 @@
     const heroJD = $('heroJD');
     const heroAnalyze = $('heroAnalyze');
 
-    const btnOpenPortfolio = $('btnOpenPortfolio');
-    const btnOpenPortfolioBottom = $('btnOpenPortfolioBottom'); // NEW button
+    const btnOpenPortfolio = $('btnOpenPortfolio'); // (not present in HTML; safe)
+    const btnOpenPortfolioBottom = $('btnOpenPortfolioBottom');
     const btnExportPortfolioHTML = $('btnExportPortfolioHTML');
     const btnExportPortfolioPDF = $('btnExportPortfolioPDF');
     const btnExportPortfolioMD = $('btnExportPortfolioMD');
@@ -380,23 +443,41 @@
     heroAnalyze?.addEventListener('click', () => btnAnalyze?.click());
 
     // Dropzone
-    ['dragenter','dragover'].forEach(evt => dropzone?.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.add('border-emerald-400','bg-emerald-50'); }));
-    ['dragleave','drop'].forEach(evt => dropzone?.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('border-emerald-400','bg-emerald-50'); }));
-    dropzone?.addEventListener('drop', e => { const f = e.dataTransfer.files?.[0]; if (f && resumeInput) { resumeInput.files = e.dataTransfer.files; onFilePicked(f); }});
+    ['dragenter','dragover'].forEach(evt => dropzone?.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      dropzone.classList.add('border-emerald-400','bg-emerald-50');
+    }));
+    ['dragleave','drop'].forEach(evt => dropzone?.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      dropzone.classList.remove('border-emerald-400','bg-emerald-50');
+    }));
+    dropzone?.addEventListener('drop', e => {
+      const f = e.dataTransfer.files?.[0];
+      if (f && resumeInput) { resumeInput.files = e.dataTransfer.files; onFilePicked(f); }
+    });
     dropzone?.addEventListener('click', () => resumeInput?.click());
-    resumeInput?.addEventListener('change', e => { const f = e.target.files?.[0]; if (f) onFilePicked(f); });
-    function onFilePicked(file){ setHTML(fileMeta, `<span class="pill">${file.name}</span> <span class="tag">${(file.size/1024).toFixed(1)} KB</span>`); }
+    resumeInput?.addEventListener('change', e => {
+      const f = e.target.files?.[0];
+      if (f) onFilePicked(f);
+    });
+    function onFilePicked(file){
+      setHTML(fileMeta, `<span class="pill">${file.name}</span> <span class="tag">${(file.size/1024).toFixed(1)} KB</span>`);
+    }
 
     // Helpers
     const clean = s => (s||'').replace(/\u0000/g,' ').replace(/\s+/g,' ').trim();
-    function tokenize(text){return clean(text.toLowerCase()).replace(/[^a-z0-9+.#\- ]/g,' ').split(/\s+/).filter(Boolean);}    
+    function tokenize(text){return clean(text.toLowerCase()).replace(/[^a-z0-9+.#\- ]/g,' ').split(/\s+/).filter(Boolean);}
     function unique(arr){return Array.from(new Set(arr));}
     function stem(w){return w.replace(/(ing|ed|ly|es|s)$/,'').replace(/(ment|tion|tions|ities|ity|al|er|or|ers|ors)$/,'');}
-    function hasBullets(text){return /(^|\n)\s*([•\-–—\*]|\u2022|\u25cf)\s+/m.test(text) || /\n\d+\.\s+/.test(text);}    
-    function extractEmails(t){const re=/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig;return unique(t.match(re)||[]);}    
+    function hasBullets(text){return /(^|\n)\s*([•\-–—\*]|\u2022|\u25cf)\s+/m.test(text) || /\n\d+\.\s+/.test(text);}
+    function extractEmails(t){const re=/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig;return unique(t.match(re)||[]);}
     function extractPhones(t){const re=/(\+?\d[\d\s().-]{8,}\d)/g;return unique((t.match(re)||[]).map(s=>s.trim()));}
-    function extractLinks(t){const re=/(https?:\/\/[^\s)]+)|(linkedin\.com\/[^\s)]+)|(github\.com\/[^\s)]+)/ig;return unique(t.match(re)||[]);}    
-    function countActionVerbs(t){const verbs=['led','built','created','developed','designed','delivered','automated','optimized','improved','reduced','migrated','implemented','integrated','deployed','analyzed','modeled','forecasted','visualized','orchestrated','scripted','configured','managed','owned','launched','refactored','debugged','mentored','collaborated'];const bag=new Set(tokenize(t));return verbs.filter(v=>bag.has(v)).length;}
+    function extractLinks(t){const re=/(https?:\/\/[^\s)]+)|(linkedin\.com\/[^\s)]+)|(github\.com\/[^\s)]+)/ig;return unique(t.match(re)||[]);}
+    function countActionVerbs(t){
+      const verbs=['led','built','created','developed','designed','delivered','automated','optimized','improved','reduced','migrated','implemented','integrated','deployed','analyzed','modeled','forecasted','visualized','orchestrated','scripted','configured','managed','owned','launched','refactored','debugged','mentored','collaborated'];
+      const bag=new Set(tokenize(t));
+      return verbs.filter(v=>bag.has(v)).length;
+    }
     const stopWords=new Set(['and','the','for','with','from','that','this','are','was','were','will','shall','able','such','using','use','into','onto','over','under','per','via','etc','you','your','our','their','they','he','she','him','her','them','work','working','worked','year','years','month','months','responsible','responsibilities','role','roles','team','teams','company','organization','project','projects','resume','curriculum','vitae','cv','page','pages','strong','excellent','experienced','proven','about','job','title','location','preferred','preference','open','candidate','contract','type','within','identify','challenges','opportunities','drive','growth','maintain','standard','robust','processes','familiar','like','concepts','translate','complex']);
 
     const hardSkillHints=['sql','python','r','excel','powerbi','tableau','lookerstudio','pbi','etl','pipeline','modeling','visualization','statistics','ml','machine','learning','gis','arcgis','qgis','cad','p6','unifier','sap','erp','snowflake','databricks','spark','pandas','numpy','dax','m','power','query','ssrs','ssas','ssms','spss'];
@@ -408,14 +489,22 @@
       const tokens = tokenize(jdText);
       const originals = tokens.filter(t=>t.length>2 && !stopWords.has(t));
       const stemMap=new Map();
-      originals.forEach(o=>{const st=stem(o); if(!stemMap.has(st)) stemMap.set(st,new Set()); stemMap.get(st).add(o);});
+      originals.forEach(o=>{
+        const st=stem(o);
+        if(!stemMap.has(st)) stemMap.set(st,new Set());
+        stemMap.get(st).add(o);
+      });
       return stemMap;
     }
-    function extractResumeStems(text){ const tokens=tokenize(text); return new Set(tokens.map(stem).filter(w=>w.length>2 && !stopWords.has(w))); }
+    function extractResumeStems(text){
+      const tokens=tokenize(text);
+      return new Set(tokens.map(stem).filter(w=>w.length>2 && !stopWords.has(w)));
+    }
     function bucketize(words){
       const lower=words.map(w=>w.toLowerCase());
       const buckets={Hard_Skills:[],Platforms:[],Certifications:[],Soft_Skills:[],Other:[]};
-      lower.forEach((w,i)=>{ const orig=words[i];
+      lower.forEach((w,i)=>{
+        const orig=words[i];
         if(hardSkillHints.some(h=>w.includes(h))) buckets.Hard_Skills.push(orig);
         else if(platformHints.some(h=>w.includes(h))) buckets.Platforms.push(orig);
         else if(certHints.some(h=>w.includes(h))) buckets.Certifications.push(orig);
@@ -425,33 +514,113 @@
       return buckets;
     }
     function renderBucket(container,title,arr){
-      const uniq=Array.from(new Set(arr)).slice(0,20); if(!uniq.length || !container) return;
+      const uniq=Array.from(new Set(arr)).slice(0,20);
+      if(!uniq.length || !container) return;
       const wrap=document.createElement('div');
       const h=document.createElement('div'); h.className='text-sm font-semibold mb-1'; h.textContent=`${title} (${uniq.length})`; wrap.appendChild(h);
       const line=document.createElement('div'); line.className='flex flex-wrap gap-2';
-      uniq.forEach(k=>{ const s=document.createElement('span'); s.className='tag tag-danger'; s.textContent=k; s.title='Click to get a sample sentence'; s.addEventListener('click',()=>addSmartLine(k)); line.appendChild(s); });
-      wrap.appendChild(line); container.appendChild(wrap);
+      uniq.forEach(k=>{
+        const s=document.createElement('span');
+        s.className='tag tag-danger';
+        s.textContent=k;
+        s.title='Click to get a sample sentence';
+        s.addEventListener('click',()=>addSmartLine(k));
+        line.appendChild(s);
+      });
+      wrap.appendChild(line);
+      container.appendChild(wrap);
     }
 
     // File parsing
-    async function readFileAsArrayBuffer(file){ return new Promise((resolve,reject)=>{ const fr=new FileReader(); fr.onload=()=>resolve(fr.result); fr.onerror=reject; fr.readAsArrayBuffer(file); }); }
-    async function extractTextFromPDF(arrayBuffer){ const lib=window._pdfjsLib; const loadingTask=lib.getDocument({ data: arrayBuffer }); const pdf=await loadingTask.promise; let fullText=''; for(let i=1;i<=pdf.numPages;i++){ const page=await pdf.getPage(i); const content=await page.getTextContent(); fullText+=content.items.map(it=>it.str).join('\n')+'\n'; } return fullText; }
-    async function extractTextFromDOCX(arrayBuffer){ const { value } = await window.mammoth.convertToHtml({ arrayBuffer }); return value.replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,'\n').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim(); }
-    async function getResumeText(file){ const buf=await readFileAsArrayBuffer(file); const ext=file.name.toLowerCase().split('.').pop(); if(ext==='pdf') return extractTextFromPDF(buf); if(ext==='docx') return extractTextFromDOCX(buf); throw new Error('Unsupported file format. Please use PDF or DOCX.'); }
+    async function readFileAsArrayBuffer(file){
+      return new Promise((resolve,reject)=>{
+        const fr=new FileReader();
+        fr.onload=()=>resolve(fr.result);
+        fr.onerror=reject;
+        fr.readAsArrayBuffer(file);
+      });
+    }
+    async function extractTextFromPDF(arrayBuffer){
+      const lib=window._pdfjsLib;
+      const loadingTask=lib.getDocument({ data: arrayBuffer });
+      const pdf=await loadingTask.promise;
+      let fullText='';
+      for(let i=1;i<=pdf.numPages;i++){
+        const page=await pdf.getPage(i);
+        const content=await page.getTextContent();
+        fullText+=content.items.map(it=>it.str).join('\n')+'\n';
+      }
+      return fullText;
+    }
+    async function extractTextFromDOCX(arrayBuffer){
+      const { value } = await window.mammoth.convertToHtml({ arrayBuffer });
+      return value
+        .replace(/<style[\s\S]*?<\/style>/gi,' ')
+        .replace(/<[^>]+>/g,'\n')
+        .replace(/&nbsp;/g,' ')
+        .replace(/\s+/g,' ')
+        .trim();
+    }
+    async function getResumeText(file){
+      const buf=await readFileAsArrayBuffer(file);
+      const ext=file.name.toLowerCase().split('.').pop();
+      if(ext==='pdf') return extractTextFromPDF(buf);
+      if(ext==='docx') return extractTextFromDOCX(buf);
+      throw new Error('Unsupported file format. Please use PDF or DOCX.');
+    }
 
     // Sections + scoring
-    function detectSections(text){ return { summary:/(summary|objective|profile)\b/i.test(text), experience:/(experience|work history|employment)\b/i.test(text), education:/(education|academics)\b/i.test(text), skills:/\bskills?\b/i.test(text), projects:/\bprojects?\b/i.test(text), certifications:/\b(certification|certifications|licenses?)\b/i.test(text) }; }
+    function detectSections(text){
+      return {
+        summary:/(summary|objective|profile)\b/i.test(text),
+        experience:/(experience|work history|employment)\b/i.test(text),
+        education:/(education|academics)\b/i.test(text),
+        skills:/\bskills?\b/i.test(text),
+        projects:/\bprojects?\b/i.test(text),
+        certifications:/\b(certification|certifications|licenses?)\b/i.test(text)
+      };
+    }
 
     function scoreResume(text,jdText,fileName=''){
-      const words=tokenize(text); const wordCount=words.length; const emails=extractEmails(text); const phones=extractPhones(text); const links=extractLinks(text);
-      const bullets=hasBullets(text); const actionVerbCount=countActionVerbs(text); const metricsCount=(text.match(/[%$]\s?\d|[\s(]\d{1,3}(?:\.\d+)?%|saved|reduced|improved|increased|decreased/gi)||[]).length; const sections=detectSections(text); const fileBonus=/resume|cv/i.test(fileName)&&/[a-z].+_[a-z]/i.test(fileName)?2:0;
-      let lengthScore=wordCount<250?4:wordCount<=1100?10:6; const sectionWeights={summary:5,experience:10,education:6,skills:5,projects:3,certifications:1}; let sectionScore=0; for(const [k,w] of Object.entries(sectionWeights)){ if(sections[k]) sectionScore+=w; }
-      const contactScore=Math.min(10,(emails.length?4:0)+(phones.length?3:0)+(links.length?3:0)); const bulletScore=bullets?5:2; const verbScore=Math.min(10,actionVerbCount); const formatScore=10;
+      const words=tokenize(text);
+      const wordCount=words.length;
+      const emails=extractEmails(text);
+      const phones=extractPhones(text);
+      const links=extractLinks(text);
+      const bullets=hasBullets(text);
+      const actionVerbCount=countActionVerbs(text);
+      const metricsCount=(text.match(/[%$]\s?\d|[\s(]\d{1,3}(?:\.\d+)?%|saved|reduced|improved|increased|decreased/gi)||[]).length;
+      const sections=detectSections(text);
+      const fileBonus=/resume|cv/i.test(fileName)&&/[a-z].+_[a-z]/i.test(fileName)?2:0;
+
+      let lengthScore=wordCount<250?4:wordCount<=1100?10:6;
+      const sectionWeights={summary:5,experience:10,education:6,skills:5,projects:3,certifications:1};
+      let sectionScore=0;
+      for(const [k,w] of Object.entries(sectionWeights)){ if(sections[k]) sectionScore+=w; }
+
+      const contactScore=Math.min(10,(emails.length?4:0)+(phones.length?3:0)+(links.length?3:0));
+      const bulletScore=bullets?5:2;
+      const verbScore=Math.min(10,actionVerbCount);
+      const formatScore=10;
 
       // JD match
       let jdScore=0, kwStats={pct:0,present:[],missing:[],missingBuckets:null}, jdActive=false;
-      if(jdText && jdText.trim().length>10){ jdActive=true; const jdStemMap=extractJDKeywords(jdText); const resumeStems=extractResumeStems(text); const present=[], missing=[]; jdStemMap.forEach((origSet,st)=>{ const originals=Array.from(origSet); if(resumeStems.has(st)) present.push(originals[0]); else missing.push(originals[0]);}); const pct=(present.length+missing.length)?Math.round((present.length/(present.length+missing.length))*100):0; jdScore=Math.min(25,Math.round(pct*0.25)); const buckets=bucketize(missing); kwStats={ pct, present, missing, missingBuckets:buckets };
+      if(jdText && jdText.trim().length>10){
+        jdActive=true;
+        const jdStemMap=extractJDKeywords(jdText);
+        const resumeStems=extractResumeStems(text);
+        const present=[], missing=[];
+        jdStemMap.forEach((origSet,st)=>{
+          const originals=Array.from(origSet);
+          if(resumeStems.has(st)) present.push(originals[0]);
+          else missing.push(originals[0]);
+        });
+        const pct=(present.length+missing.length)?Math.round((present.length/(present.length+missing.length))*100):0;
+        jdScore=Math.min(25,Math.round(pct*0.25));
+        const buckets=bucketize(missing);
+        kwStats={ pct, present, missing, missingBuckets:buckets };
       }
+
       const total=Math.round(sectionScore+jdScore+contactScore+bulletScore+verbScore+lengthScore+formatScore+fileBonus);
 
       const suggests=[]; const add=s=>suggests.push(s);
@@ -465,21 +634,59 @@
       if(!links.some(l=>/linkedin\.com/i.test(l))) add('[Contact] Add a custom LinkedIn URL.');
       if(!bullets) add('[Format] Convert paragraphs into concise bullets for ATS parsing.');
       if(jdActive && kwStats.missing.length) add('[Keywords] Add missing role-specific terms (see “Top Missing Keywords”).');
-      const order=['[Content]','[Impact]','[Keywords]','[Writing]','[Format]','[Length]','[Contact]','[Depth]']; suggests.sort((a,b)=>(order.findIndex(k=>a.startsWith(k)))-(order.findIndex(k=>b.startsWith(k))));
+      const order=['[Content]','[Impact]','[Keywords]','[Writing]','[Format]','[Length]','[Contact]','[Depth]'];
+      suggests.sort((a,b)=>(order.findIndex(k=>a.startsWith(k)))-(order.findIndex(k=>b.startsWith(k))));
 
-      const strengths=[]; if(sections.experience) strengths.push('Experience section detected.'); if(sections.skills) strengths.push('Skills section present.'); if(sections.education) strengths.push('Education section present.'); if(bullets) strengths.push('Uses bullet points for scannability.'); if(actionVerbCount>=10) strengths.push('Strong action-verb usage.'); if(metricsCount>=3) strengths.push('Good use of measurable outcomes.'); if(emails.length) strengths.push('Professional email present.'); if(phones.length) strengths.push('Phone number present.'); if(links.some(l=>/linkedin\.com/i.test(l))) strengths.push('LinkedIn link detected.');
+      const strengths=[];
+      if(sections.experience) strengths.push('Experience section detected.');
+      if(sections.skills) strengths.push('Skills section present.');
+      if(sections.education) strengths.push('Education section present.');
+      if(bullets) strengths.push('Uses bullet points for scannability.');
+      if(actionVerbCount>=10) strengths.push('Strong action-verb usage.');
+      if(metricsCount>=3) strengths.push('Good use of measurable outcomes.');
+      if(emails.length) strengths.push('Professional email present.');
+      if(phones.length) strengths.push('Phone number present.');
+      if(links.some(l=>/linkedin\.com/i.test(l))) strengths.push('LinkedIn link detected.');
 
-      return { total:Math.max(0,Math.min(100,total)), wordCount, bullets, actionVerbCount, metricsCount, strengths, suggests, jd:kwStats, jdActive, sections, emails, phones, links };
+      return {
+        total:Math.max(0,Math.min(100,total)),
+        wordCount,
+        bullets,
+        actionVerbCount,
+        metricsCount,
+        strengths,
+        suggests,
+        jd:kwStats,
+        jdActive,
+        sections,
+        emails,
+        phones,
+        links
+      };
     }
 
     // ===== Persist =====
     let lastReport = null; // for exports
-    function saveLast(){ if(!lastReport) return; try{ localStorage.setItem('jobtuner:lastReport', JSON.stringify(lastReport)); }catch{} }
-    function loadLast(){ try{ const raw=localStorage.getItem('jobtuner:lastReport'); if(!raw) return; const parsed=JSON.parse(raw); lastReport=parsed; hydrateFromReport(parsed); }catch(e){ alert('Could not load last report.'); } }
+    function saveLast(){
+      if(!lastReport) return;
+      try{ localStorage.setItem('jobtuner:lastReport', JSON.stringify(lastReport)); }catch{}
+    }
+    function loadLast(){
+      try{
+        const raw=localStorage.getItem('jobtuner:lastReport');
+        if(!raw) return;
+        const parsed=JSON.parse(raw);
+        lastReport=parsed;
+        hydrateFromReport(parsed);
+      }catch(e){
+        alert('Could not load last report.');
+      }
+    }
     btnLoadLast?.addEventListener('click', loadLast);
 
     // ===== Analyze flow =====
     const showOrHideResults = (showIt)=>{ if(!results) return; results.classList.toggle('hidden', !showIt); };
+
     btnAnalyze?.addEventListener('click', analyze);
     btnReset?.addEventListener('click', ()=>{
       if(resumeInput) resumeInput.value='';
@@ -491,6 +698,13 @@
       hide(soCard);
     });
 
+    function toggleAnalyzing(isOn){
+      if(!btnAnalyze) return;
+      btnAnalyze.disabled=isOn;
+      btnAnalyze.innerHTML=isOn?'<span>Analyzing…</span>':'<i data-lucide="sparkles" class="w-4 h-4"></i> Analyze';
+      if(window.lucide && !isOn) lucide.createIcons();
+    }
+
     async function analyze(){
       const file=resumeInput?.files?.[0];
       if(!file){ alert('Please upload a PDF or DOCX resume first.'); return; }
@@ -499,7 +713,13 @@
         const text=await getResumeText(file);
         const jdText=jobDescEl?.value||'';
         const r=scoreResume(text,jdText,file.name);
-        lastReport={ report:r, resumeFile:file.name, resumeText:text, jd: jdText, generatedAt:new Date().toISOString() };
+        lastReport={
+          report:r,
+          resumeFile:file.name,
+          resumeText:text,
+          jd: jdText,
+          generatedAt:new Date().toISOString()
+        };
         saveLast();
         hydrateFromReport(lastReport);
       }catch(err){
@@ -531,34 +751,55 @@
 
       setHTML(strengthsEl,'');
       (r.strengths.length?r.strengths:['Add core sections & contacts to unlock strengths.']).forEach(s=>{
-        if(!strengthsEl) return; const li=document.createElement('li'); li.textContent=s; strengthsEl.appendChild(li);
+        if(!strengthsEl) return;
+        const li=document.createElement('li');
+        li.textContent=s;
+        strengthsEl.appendChild(li);
       });
 
       setHTML(suggestionsEl,'');
       (r.suggests.length?r.suggests:['Tailor bullets with metrics and mirror JD keywords.']).forEach(s=>{
-        if(!suggestionsEl) return; const li=document.createElement('li'); li.textContent=s; suggestionsEl.appendChild(li);
+        if(!suggestionsEl) return;
+        const li=document.createElement('li');
+        li.textContent=s;
+        suggestionsEl.appendChild(li);
       });
 
       setHTML(kwPresent,''); setHTML(kwMissingAll,''); setHTML(missingBuckets,''); setHTML(smartLines,'');
       if(r.jdActive){
-        setText(kwPct, `${r.jd.pct}%`); setWidth(kwBar, `${r.jd.pct}%`);
+        setText(kwPct, `${r.jd.pct}%`);
+        setWidth(kwBar, `${r.jd.pct}%`);
+
         r.jd.present.slice(0,80).forEach(k=>{
           if(!kwPresent) return;
-          const span=document.createElement('span'); span.className='tag tag-good'; span.textContent=k; kwPresent.appendChild(span);
+          const span=document.createElement('span');
+          span.className='tag tag-good';
+          span.textContent=k;
+          kwPresent.appendChild(span);
         });
+
         const b=r.jd.missingBuckets||{Hard_Skills:[],Platforms:[],Certifications:[],Soft_Skills:[],Other:[]};
         renderBucket(missingBuckets,'Hard skills / Tools',b.Hard_Skills);
         renderBucket(missingBuckets,'Platforms',b.Platforms);
         renderBucket(missingBuckets,'Certifications',b.Certifications);
         renderBucket(missingBuckets,'Soft Skills',b.Soft_Skills);
+
         Array.from(new Set(r.jd.missing)).forEach(k=>{
           if(!kwMissingAll) return;
-          const span=document.createElement('span'); span.className='tag tag-danger'; span.textContent=k; span.title='Click to get a sample sentence'; span.addEventListener('click',()=>addSmartLine(k)); kwMissingAll.appendChild(span);
+          const span=document.createElement('span');
+          span.className='tag tag-danger';
+          span.textContent=k;
+          span.title='Click to get a sample sentence';
+          span.addEventListener('click',()=>addSmartLine(k));
+          kwMissingAll.appendChild(span);
         });
       }else{
         setText(kwPct,'—'); setWidth(kwBar,'0%');
         if(missingBuckets){
-          const info=document.createElement('div'); info.className='text-sm text-slate-600'; info.textContent='Paste a JD to compute match % and missing keywords.'; missingBuckets.appendChild(info);
+          const info=document.createElement('div');
+          info.className='text-sm text-slate-600';
+          info.textContent='Paste a JD to compute match % and missing keywords.';
+          missingBuckets.appendChild(info);
         }
       }
 
@@ -571,7 +812,10 @@
             const md = ideas.map(i=>`- **${i.title}** — ${i.desc}`).join('\n');
             navigator.clipboard.writeText(md).then(()=>{
               setText(btnCopyIdeas, 'Copied!');
-              setTimeout(()=>{ btnCopyIdeas.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i> Copy as README section'; if(window.lucide) lucide.createIcons(); }, 1200);
+              setTimeout(()=>{
+                btnCopyIdeas.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i> Copy as README section';
+                if(window.lucide) lucide.createIcons();
+              }, 1200);
             });
           };
         }
@@ -591,21 +835,27 @@
       if(window.lucide) lucide.createIcons();
     }
 
-    function toggleAnalyzing(isOn){
-      if(!btnAnalyze) return;
-      btnAnalyze.disabled=isOn;
-      btnAnalyze.innerHTML=isOn?'<span>Analyzing…</span>':'<i data-lucide="sparkles" class="w-4 h-4"></i> Analyze';
-      if(window.lucide && !isOn) lucide.createIcons();
-    }
-
     // ===== Smart Lines =====
     function addSmartLine(keyword){
       const line = sampleLineFor(keyword);
       if(!smartLines) return;
-      const row=document.createElement('div'); row.className='flex items-start justify-between gap-2 py-1';
-      const p=document.createElement('p'); p.textContent='• '+line; p.className='flex-1'; row.appendChild(p);
-      const btn=document.createElement('button'); btn.className='btn btn-ghost'; btn.innerHTML='<i data-lucide="copy" class="w-4 h-4"></i> Copy'; btn.addEventListener('click',()=>{ navigator.clipboard.writeText(line); btn.textContent='Copied!'; setTimeout(()=>btn.innerHTML='<i data-lucide="copy" class="w-4 h-4"></i> Copy',1200); }); row.appendChild(btn);
-      smartLines.appendChild(row); if(window.lucide) lucide.createIcons();
+      const row=document.createElement('div');
+      row.className='flex items-start justify-between gap-2 py-1';
+      const p=document.createElement('p');
+      p.textContent='• '+line;
+      p.className='flex-1';
+      row.appendChild(p);
+      const btn=document.createElement('button');
+      btn.className='btn btn-ghost';
+      btn.innerHTML='<i data-lucide="copy" class="w-4 h-4"></i> Copy';
+      btn.addEventListener('click',()=>{
+        navigator.clipboard.writeText(line);
+        btn.textContent='Copied!';
+        setTimeout(()=>btn.innerHTML='<i data-lucide="copy" class="w-4 h-4"></i> Copy',1200);
+      });
+      row.appendChild(btn);
+      smartLines.appendChild(row);
+      if(window.lucide) lucide.createIcons();
     }
     function sampleLineFor(k){
       const kw=k.toLowerCase();
@@ -644,7 +894,51 @@
       return ideas.slice(0,8);
     }
 
-    // ===== Portfolio Preview (minimal; uses lastReport.resumeText) =====
+    // ===== Portfolio helpers for export =====
+    function skillsFromResume(text){
+      const tokens=unique(tokenize(text));
+      const found=[];
+      [...hardSkillHints, ...platformHints].forEach(h=>{
+        if(tokens.some(t=>t.includes(h))) found.push(h.toUpperCase());
+      });
+      return Array.from(new Set(found)).sort();
+    }
+    function portfolioHTML(data){
+      const { report:r, resumeText, resumeFile }=data;
+      const skills=skillsFromResume(resumeText||'');
+      return `
+      <section style="font-family:Inter,system-ui,sans-serif; padding:24px; max-width:900px; margin:0 auto;">
+        <header style="padding:16px 0;margin-bottom:8px;border-bottom:1px solid #e5e7eb">
+          <h1 style="font-family:Poppins,Inter,sans-serif;font-size:28px;margin:0">${(resumeFile||'Portfolio')}</h1>
+          <div style="color:#475569;font-size:12px">Generated by JobTuner — ATS ${r.total}/100 • Keywords ${r.jd?.pct ?? '—'}%</div>
+        </header>
+        <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:20px;margin-top:12px;">
+          <div>
+            <h2 style="font-size:18px;margin:12px 0 4px 0">Experience / Highlights</h2>
+            <ul style="margin:6px 0 12px 18px;color:#0f172a;font-size:14px;line-height:1.5">
+              ${r.strengths.slice(0,6).map(s=>`<li>${s}</li>`).join('') || '<li>Update resume to populate highlights.</li>'}
+            </ul>
+            <h2 style="font-size:18px;margin:12px 0 4px 0">Sample Bullets</h2>
+            <ul style="margin:6px 0 12px 18px;color:#0f172a;font-size:14px;line-height:1.5">
+              ${(r.suggests||[]).slice(0,6).map(s=>`<li>${s.replace(/^\[[^\]]+\]\s?/,'')}</li>`).join('') || '<li>Add impact-oriented bullet points.</li>'}
+            </ul>
+          </div>
+          <aside>
+            <h3 style="font-size:16px;margin:12px 0 6px 0">Skills</h3>
+            <div>
+              ${skills.length
+                ? skills.map(k=>`<span style="display:inline-block;margin:2px 4px;padding:4px 8px;border-radius:999px;background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;font-size:12px;font-weight:700">${k}</span>`).join('')
+                : '<span style="color:#64748b;font-size:12px">No skills detected — add a Skills section.</span>'}
+            </div>
+            <h3 style="font-size:16px;margin:12px 0 6px 0">JD Keywords</h3>
+            <div style="font-size:12px;color:#475569">Present: ${(r.jd?.present||[]).slice(0,20).join(', ')||'—'}</div>
+            <div style="font-size:12px;color:#475569">Missing: ${(r.jd?.missing||[]).slice(0,12).join(', ')||'—'}</div>
+          </aside>
+        </div>
+      </section>`;
+    }
+
+    // ===== Portfolio Preview (modal) using lastReport.resumeText =====
     function openPortfolio(){
       if(!lastReport || !lastReport.resumeText){
         alert('Run Analyze first — I need your parsed resume text.');
@@ -704,19 +998,233 @@
 
       portfolioModal?.classList.add('open');
       if(window.lucide) lucide.createIcons();
+
+      // once opened, show export buttons
+      show(btnExportPortfolioHTML);
+      show(btnExportPortfolioPDF);
+      show(btnExportPortfolioMD);
     }
 
     closePortfolio?.addEventListener('click', ()=> portfolioModal?.classList.remove('open'));
-    btnOpenPortfolio?.addEventListener('click', openPortfolio);
-    btnOpenPortfolioBottom?.addEventListener('click', openPortfolio); // NEW: bottom button
+    btnOpenPortfolio?.addEventListener('click', openPortfolio); // (no-op if null)
+    btnOpenPortfolioBottom?.addEventListener('click', openPortfolio);
 
-    // Exports (left as-is)
-    function toggleAnalyzing(isOn){
-      if(!btnAnalyze) return;
-      btnAnalyze.disabled=isOn;
-      btnAnalyze.innerHTML=isOn?'<span>Analyzing…</span>':'<i data-lucide="sparkles" class="w-4 h-4"></i> Analyze';
-      if(window.lucide && !isOn) lucide.createIcons();
-    }
+    // ===== Report Downloads (JSON / PDF / CSV) =====
+    btnDownloadReport && (btnDownloadReport.onclick = () => {
+      if(!lastReport) return;
+      const r = lastReport.report;
+      const data = {
+        score:      r.total,
+        wordCount:  r.wordCount,
+        signals:    { verbs:r.actionVerbCount, metrics:r.metricsCount, bulleted:r.bullets },
+        sections:   r.sections,
+        strengths:  r.strengths,
+        suggestions:r.suggests,
+        jd:         { pct:r.jd.pct, present:r.jd.present, missing:r.jd.missing },
+        generatedAt:new Date().toISOString(),
+        resumeFile: lastReport.resumeFile
+      };
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='jobtuner_report.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    btnPDF?.addEventListener('click', () => {
+      if(!lastReport) return;
+      const { report:r, resumeFile }=lastReport;
+      const { jsPDF } = window.jspdf;
+      const doc=new jsPDF({ unit:'pt', format:'a4' });
+
+      const margin=40;
+      let y=margin;
+
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(16);
+      doc.text('JobTuner — ATS Resume Report', margin, y);
+      y+=18;
+
+      doc.setFont('helvetica','');
+      doc.setFontSize(10);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
+      doc.text(`Resume: ${resumeFile}`, 400, y, { align:'right', maxWidth: 155 });
+      y+=20;
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica','bold');
+      doc.text(`ATS Score: ${r.total}/100`, margin, y);
+      y+=8;
+      doc.setDrawColor(220);
+      doc.setFillColor(240);
+      doc.roundedRect(margin, y, 515, 10, 5, 5, 'F');
+      doc.setFillColor(40,180,120);
+      doc.roundedRect(margin, y, Math.max(0, Math.min(515, 515*(r.total/100))), 10, 5, 5, 'F');
+      y+=22;
+
+      doc.setFont('helvetica','');
+      doc.text(`Word count: ${r.wordCount}`,      margin,       y);
+      doc.text(`Action verbs: ${r.actionVerbCount}`, margin+170, y);
+      doc.text(`Metrics: ${r.metricsCount}`,      margin+320,   y);
+      doc.text(`Bulleted: ${r.bullets?'Yes':'No'}`, margin+430, y);
+      y+=16;
+
+      doc.setFont('helvetica','bold');
+      doc.text('Strengths', margin, y);
+      y+=12;
+      doc.setFont('helvetica','');
+      r.strengths.slice(0,8).forEach(s=>{
+        doc.text(`• ${s}`, margin, y, { maxWidth:515 });
+        y+=14;
+      });
+      y+=6;
+
+      doc.setFont('helvetica','bold');
+      doc.text('Suggestions', margin, y);
+      y+=12;
+      doc.setFont('helvetica','');
+      r.suggests.slice(0,12).forEach((s,i)=>{
+        doc.text(`${i+1}. ${s}`, margin, y, { maxWidth:515 });
+        y+=14;
+      });
+      y+=10;
+
+      if(r.jd && (r.jd.present.length || r.jd.missing.length)){
+        doc.setFont('helvetica','bold');
+        doc.text(`Keyword Match vs JD — ${r.jd.pct}%`, margin, y);
+        y+=8;
+        doc.autoTable({
+          startY: y+6,
+          margin: { left: margin, right: margin },
+          styles: { fontSize: 9, cellPadding: 4, overflow:'linebreak' },
+          head: [['Present (sample up to 30)', 'Missing (top up to 30)']],
+          body: [[
+            r.jd.present.slice(0,30).join(', '),
+            r.jd.missing.slice(0,30).join(', ')
+          ]]
+        });
+      }
+
+      doc.save('jobtuner_report.pdf');
+    });
+
+    btnCSV?.addEventListener('click', () => {
+      if(!lastReport) return;
+      const { report:r }=lastReport;
+      const rows=[["Keyword","Bucket"]];
+      if(r.jd && r.jd.missingBuckets){
+        const b=r.jd.missingBuckets;
+        const pushAll=(arr,bucket)=>Array.from(new Set(arr)).forEach(k=>rows.push([k,bucket]));
+        pushAll(b.Hard_Skills,'Hard_Skills');
+        pushAll(b.Platforms,'Platforms');
+        pushAll(b.Certifications,'Certifications');
+        pushAll(b.Soft_Skills,'Soft_Skills');
+        pushAll(b.Other,'Other');
+      }
+      const csv=rows.map(rw=>rw.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob=new Blob([csv],{ type:'text/csv;charset=utf-8;' });
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='jobtuner_missing_keywords.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.addEventListener('click', ()=>{
+      if(!lastReport) return;
+      const r=lastReport.report;
+      toggle(btnCSV, (r.jd && r.jd.missing && r.jd.missing.length));
+    });
+
+    // ===== Portfolio Exports (HTML / PDF / README.md) =====
+    btnExportPortfolioHTML?.addEventListener('click', ()=>{
+      if(!lastReport) return;
+      const html=`<!doctype html><meta charset="utf-8"><title>Portfolio — ${lastReport.resumeFile||''}</title>${portfolioHTML(lastReport)}`;
+      const blob=new Blob([html],{type:'text/html'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='portfolio.html';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    btnExportPortfolioPDF?.addEventListener('click', ()=>{
+      if(!lastReport) return;
+      const { jsPDF }=window.jspdf;
+      const doc=new jsPDF({ unit:'pt', format:'a4' });
+      let y=40;
+
+      const r=lastReport.report;
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(16);
+      doc.text('Portfolio — JobTuner', 40, y);
+      y+=18;
+
+      doc.setFont('helvetica','');
+      doc.setFontSize(10);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 40, y);
+      y+=16;
+
+      doc.setFontSize(12);
+      doc.text(`ATS: ${r.total}/100 | JD Match: ${r.jd?.pct ?? '—'}%`, 40, y);
+      y+=18;
+
+      doc.setFont('helvetica','bold');
+      doc.text('Highlights',40,y);
+      y+=12;
+      doc.setFont('helvetica','');
+      (r.strengths||[]).slice(0,7).forEach(s=>{
+        doc.text(`• ${s}`, 40, y, { maxWidth: 515 });
+        y+=14;
+      });
+
+      y+=6;
+      doc.setFont('helvetica','bold');
+      doc.text('Sample Bullets',40,y);
+      y+=12;
+      doc.setFont('helvetica','');
+      (r.suggests||[]).slice(0,7).forEach(s=>{
+        doc.text(`• ${s.replace(/^\[[^\]]+\]\s?/,'')}`, 40, y, { maxWidth: 515 });
+        y+=14;
+      });
+
+      doc.save('portfolio.pdf');
+    });
+
+    btnExportPortfolioMD?.addEventListener('click', ()=>{
+      if(!lastReport) return;
+      const r=lastReport.report;
+      const ideas=generateProjectIdeas(r);
+      const lines=[];
+      lines.push('# JobTuner – Personalized Portfolio');
+      lines.push('');
+      lines.push(`**ATS Score:** ${r.total}/100  `);
+      lines.push(`**JD Match:** ${r.jd?.pct ?? '—'}%`);
+      lines.push('');
+      lines.push('## Highlights');
+      (r.strengths||[]).slice(0,8).forEach(s=>lines.push(`- ${s}`));
+      lines.push('');
+      lines.push('## Suggestions (Top)');
+      (r.suggests||[]).slice(0,8).forEach(s=>lines.push(`- ${s.replace(/^\[[^\]]+\]\s?/,'')}`));
+      lines.push('');
+      lines.push('## Project Ideas');
+      ideas.forEach(i=>lines.push(`- **${i.title}** — ${i.desc}`));
+      lines.push('');
+      lines.push('> Generated locally by JobTuner.');
+
+      const md=lines.join('\n');
+      const blob=new Blob([md],{type:'text/markdown'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download='README.md';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   </script>
 </body>
 </html>
